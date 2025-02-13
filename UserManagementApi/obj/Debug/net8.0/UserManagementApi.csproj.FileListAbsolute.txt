@@ -358,3 +358,4 @@ C:\Users\varun\assesment-proj\UserManagementApi\bin\Debug\net8.0\xunit.assert.dl
 C:\Users\varun\assesment-proj\UserManagementApi\bin\Debug\net8.0\xunit.core.dll
 C:\Users\varun\assesment-proj\UserManagementApi\bin\Debug\net8.0\xunit.execution.dotnet.dll
 C:\Users\varun\assesment-proj\UserManagementApi\obj\Debug\net8.0\MvcTestingAppManifest.json
+C:\Users\varun\assesment-proj\UserManagementApi\obj\Debug\net8.0\UserManagementApi.sourcelink.json
