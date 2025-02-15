@@ -1,57 +1,88 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 using UserManagementApi.Data;
-using UserManagementApi.Models;
+using UserManagementApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Add database context
+// ✅ Configure PostgreSQL Database
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("UserDb"));
+    options.UseNpgsql(connectionString));
 
-// ✅ Enable CORS before app.Build()
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend",
-        policy => policy.WithOrigins("http://localhost:5173")
-                        .AllowAnyMethod()
-                        .AllowAnyHeader());
-});
+builder.Services.AddScoped<AuthService>();
 
-// ✅ Add controllers
+// ✅ Configure JWT Authentication
+var key = Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"]);
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+            ValidAudience = builder.Configuration["JwtSettings:Audience"],
+            ValidateLifetime = true
+        };
+    });
+
+// ✅ Add Authorization
+builder.Services.AddAuthorization();
+
+// ✅ Add Controllers & Swagger
 builder.Services.AddControllers();
-
-// ✅ Configure Swagger UI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "User Management API", Version = "v1" });
+
+    // ✅ Configure Swagger to Support JWT Authentication
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter 'Bearer {your_token_here}'"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
 });
 
 var app = builder.Build();
 
-// ✅ Ensure database is seeded with initial data
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    if (!dbContext.Users.Any())
-    {
-        dbContext.Users.Add(new User { Name = "Alice", Email = "alice@example.com", Age = 25 });
-        dbContext.SaveChanges();
-    }
-}
-
-// ✅ Apply CORS before routing
-app.UseCors("AllowFrontend");
-
+// ✅ Ensure Middleware Order is Correct
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// ✅ Enable API Routing
-app.UseAuthorization();
+app.UseAuthentication();  // 🔹 Ensure Authentication Middleware is Used
+app.UseAuthorization();   // 🔹 Ensure Authorization Middleware is Used
+
 app.MapControllers();
 
 app.Run();
