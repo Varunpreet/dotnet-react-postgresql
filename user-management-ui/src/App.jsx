@@ -1,4 +1,5 @@
 import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useUserContext } from "./context/UserContext";
 import LoginForm from "./components/LoginForm";
 import UserList from "./components/UserList";
@@ -6,12 +7,8 @@ import UserForm from "./components/UserForm";
 import { Container, Typography, Box, Paper } from "@mui/material";
 import "./App.css";
 
-const MainApp = () => {
-  const { token, logoutUser } = useUserContext();
-
-  if (!token) {
-    return <LoginForm />;
-  }
+const Dashboard = () => {
+  const { logoutUser } = useUserContext();
 
   return (
     <Container
@@ -43,7 +40,7 @@ const MainApp = () => {
           paddingTop: "20px",
         }}
       >
-
+        {/* Left Side - Add User Form + Logout Button */}
         <Paper
           sx={{
             p: 3,
@@ -62,6 +59,7 @@ const MainApp = () => {
           </button>
         </Paper>
 
+        {/* Right Side - User List */}
         <Paper
           sx={{
             p: 3,
@@ -78,4 +76,25 @@ const MainApp = () => {
   );
 };
 
-export default MainApp;
+const App = () => {
+  const { token } = useUserContext();
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/login"
+          element={!token ? <LoginForm /> : <Navigate to="/dashboard" replace />}
+        />
+        <Route
+          path="/dashboard"
+          element={token ? <Dashboard /> : <Navigate to="/login" replace />}
+        />
+        {/* Default route redirects to /login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default App;
