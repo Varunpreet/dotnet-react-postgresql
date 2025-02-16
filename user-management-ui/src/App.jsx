@@ -1,35 +1,81 @@
-import { UserProvider, useUserContext } from "./context/UserContext";
-import UserForm from "./components/UserForm";
-import UserList from "./components/UserList";
+import React from "react";
+import { useUserContext } from "./context/UserContext";
 import LoginForm from "./components/LoginForm";
-import { Container, Paper, Typography, Box, Button } from "@mui/material";
+import UserList from "./components/UserList";
+import UserForm from "./components/UserForm";
+import { Container, Typography, Box, Paper } from "@mui/material";
+import "./App.css";
 
-const AuthenticatedApp = () => {
-  const { logout } = useUserContext();
-  
+const MainApp = () => {
+  const { token, logoutUser } = useUserContext();
+
+  if (!token) {
+    return <LoginForm />;
+  }
+
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", backgroundColor: "#f4f6f8" }}>
-      <Container maxWidth="sm">
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: "center" }}>
-          <Typography variant="h4" gutterBottom>User Management</Typography>
-          <Button onClick={logout} variant="contained" color="secondary" sx={{ mb: 2 }}>Logout</Button>
+    <Container
+      maxWidth="lg"
+      sx={{
+        mt: 8,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        backgroundColor: "#f4f4f4",
+        minHeight: "100vh",
+        py: 5,
+      }}
+    >
+      <Typography
+        variant="h4"
+        sx={{ fontWeight: "bold", mb: 3, textAlign: "center", color: "black" }}
+      >
+        User Management
+      </Typography>
+
+      <Box
+        sx={{
+          display: "flex",
+          gap: 4,
+          width: "100%",
+          justifyContent: "center",
+          alignItems: "flex-start",
+          paddingTop: "20px",
+        }}
+      >
+
+        <Paper
+          sx={{
+            p: 3,
+            minWidth: "45%",
+            minHeight: "350px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            boxShadow: 3,
+            backgroundColor: "white",
+          }}
+        >
           <UserForm />
+          <button className="logout-btn" onClick={logoutUser}>
+            Logout
+          </button>
+        </Paper>
+
+        <Paper
+          sx={{
+            p: 3,
+            minWidth: "45%",
+            minHeight: "350px",
+            boxShadow: 3,
+            backgroundColor: "white",
+          }}
+        >
           <UserList />
         </Paper>
-      </Container>
-    </Box>
+      </Box>
+    </Container>
   );
 };
 
-const App = () => {
-  const { token } = useUserContext();
-  return token ? <AuthenticatedApp /> : <LoginForm />;
-};
-
-const Root = () => (
-  <UserProvider>
-    <App />
-  </UserProvider>
-);
-
-export default Root;
+export default MainApp;

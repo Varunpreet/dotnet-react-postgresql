@@ -11,8 +11,8 @@ namespace UserManagementApi.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasDefaultSchema("public"); // ✅ Ensures EF Core looks in the public schema
-            modelBuilder.Entity<User>().ToTable("users"); // ✅ Explicitly set lowercase table name
+            modelBuilder.HasDefaultSchema("public");
+            modelBuilder.Entity<User>().ToTable("users");
             base.OnModelCreating(modelBuilder);
         }
     }

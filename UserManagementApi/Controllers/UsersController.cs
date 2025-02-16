@@ -20,19 +20,16 @@ namespace UserManagementApi.Controllers
             _context = context;
         }
 
-        // GET: Fetch all users (Public API)
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             return await _context.Users.ToListAsync();
         }
 
-        // POST: Add a new user (Requires JWT Authorization)
         [HttpPost]
         [Authorize]
         public async Task<ActionResult<User>> AddUser([FromBody] User user)
         {
-            // Debug: Log received Authorization header
             var token = HttpContext.Request.Headers["Authorization"].ToString();
             Console.WriteLine($"🔍 Received Token: {token}");
 
@@ -51,12 +48,10 @@ namespace UserManagementApi.Controllers
             return CreatedAtAction(nameof(GetUsers), new { id = user.Id }, user);
         }
 
-        // DELETE: Remove a user by ID (Requires JWT Authorization)
         [HttpDelete("{id}")]
         [Authorize]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
-            // Debug: Log received Authorization header
             var token = HttpContext.Request.Headers["Authorization"].ToString();
             Console.WriteLine($"🔍 Received Token: {token}");
 

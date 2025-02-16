@@ -1,91 +1,74 @@
-import { createContext, useContext, useEffect, useReducer } from "react";
-import axios from "axios";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const UserContext = createContext();
 
-const initialState = {
-  users: [],
-  loading: false,
-  error: null,
-  token: localStorage.getItem("token") || "", // ✅ Store JWT token persistently
-};
-
-const userReducer = (state, action) => {
-  switch (action.type) {
-    case "SET_TOKEN":
-      localStorage.setItem("token", action.payload);
-      return { ...state, token: action.payload };
-    case "LOGOUT":
-      localStorage.removeItem("token");
-      return { ...state, token: "" };
-    case "FETCH_USERS_START":
-      return { ...state, loading: true, error: null };
-    case "FETCH_USERS_SUCCESS":
-      return { ...state, loading: false, users: action.payload };
-    case "FETCH_USERS_ERROR":
-      return { ...state, loading: false, error: action.payload };
-    case "ADD_USER":
-      return { ...state, users: [...state.users, action.payload] };
-    case "DELETE_USER":
-      return { ...state, users: state.users.filter(user => user.id !== action.payload) };
-    default:
-      return state;
-  }
-};
-
 export const UserProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(userReducer, initialState);
+  // Initialize token from local storage (if it exists)
+  const [token, setToken] = useState(localStorage.getItem("token") || null);
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    if (state.token) {
+    if (token) {
       fetchUsers();
     }
-  }, [state.token]);
+  }, [token]);
 
   const fetchUsers = async () => {
-    dispatch({ type: "FETCH_USERS_START" });
     try {
-      const response = await axios.get("http://localhost:5155/api/users", {
-        headers: { Authorization: `Bearer ${state.token}` }
-      });
-      dispatch({ type: "FETCH_USERS_SUCCESS", payload: response.data });
+      const response = await fetch("http://localhost:5155/api/users");
+      if (!response.ok) throw new Error("Failed to fetch users.");
+      setUsers(await response.json());
     } catch (error) {
-      dispatch({ type: "FETCH_USERS_ERROR", payload: error.message });
+      console.error("Error fetching users:", error);
     }
   };
 
-  const login = (token) => {
-    dispatch({ type: "SET_TOKEN", payload: token });
-  };
-
-  const logout = () => {
-    dispatch({ type: "LOGOUT" });
-  };
-
-  const addUser = async (user) => {
+  const addUser = async (newUser) => {
     try {
-      const response = await axios.post("http://localhost:5155/api/users", user, {
-        headers: { Authorization: `Bearer ${state.token}` }
+      if (!token) throw new Error("Unauthorized. Please log in.");
+      const response = await fetch("http://localhost:5155/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: newUser.name,
+          email: newUser.email,
+          age: Number(newUser.age),
+          passwordHash: newUser.password,
+        }),
       });
-      dispatch({ type: "ADD_USER", payload: response.data });
+
+      if (!response.ok) throw new Error("Failed to add user.");
+      setUsers([...users, await response.json()]);
     } catch (error) {
-      console.error("Error adding user:", error.response ? error.response.data : error.message);
+      console.error("Error adding user:", error);
     }
   };
 
-  const deleteUser = async (id) => {
+  const deleteUser = async (userId) => {
     try {
-      await axios.delete(`http://localhost:5155/api/users/${id}`, {
-        headers: { Authorization: `Bearer ${state.token}` }
+      if (!token) throw new Error("Unauthorized.");
+      const response = await fetch(`http://localhost:5155/api/users/${userId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
-      dispatch({ type: "DELETE_USER", payload: id });
+
+      if (!response.ok) throw new Error("Failed to delete user.");
+      setUsers(users.filter((user) => user.id !== userId));
     } catch (error) {
       console.error("Error deleting user:", error);
     }
   };
 
+  const logoutUser = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+  };
+
   return (
-    <UserContext.Provider value={{ ...state, login, logout, addUser, deleteUser }}>
+    <UserContext.Provider value={{ users, addUser, deleteUser, token, setToken, logoutUser }}>
       {children}
     </UserContext.Provider>
   );

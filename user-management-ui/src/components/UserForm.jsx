@@ -1,31 +1,54 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useUserContext } from "../context/UserContext";
-import { TextField, Button, Box, Grid } from "@mui/material";
+import { TextField, Button, Container, Typography, Stack } from "@mui/material";
 
 const UserForm = () => {
   const { addUser } = useUserContext();
-  const [formData, setFormData] = useState({ name: "", email: "", age: "", password: "" });
+  const [user, setUser] = useState({ name: "", email: "", age: "", password: "" });
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setUser({ ...user, [e.target.name]: e.target.value });
+  };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.name && formData.email && formData.age && formData.password) {
-      addUser({ ...formData, age: Number(formData.age), passwordHash: formData.password });
-      setFormData({ name: "", email: "", age: "", password: "" });
+    
+    if (!user.name || !user.email || !user.age || !user.password) {
+      alert("All fields are required!");
+      return;
     }
+    if (!/\S+@\S+\.\S+/.test(user.email)) {
+      alert("Enter a valid email address.");
+      return;
+    }
+    if (user.password.length < 6) {
+      alert("Password must be at least 6 characters long.");
+      return;
+    }
+
+    await addUser(user);
+    setUser({ name: "", email: "", age: "", password: "" });
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3, display: "flex", flexDirection: "column", gap: 2, width:"100%", maxWidth:"400px" }}>
-      <TextField fullWidth label="Name" name="name" value={formData.name} onChange={handleChange} required />
-      <TextField fullWidth label="Email" name="email" value={formData.email} onChange={handleChange} required />
-      <TextField fullWidth label="Age" name="age" value={formData.age} onChange={handleChange} required type="number" />
-      <TextField fullWidth label="Password" name="password" value={formData.password} onChange={handleChange} required type="password" />
-      <Button type="submit" variant="contained" color="primary" fullWidth>
-        Add User
-      </Button>
-    </Box>
+    <Container>
+      <Typography variant="h5" align="center" sx={{ mb: 2, fontWeight: "bold" }}>
+        Add New User
+      </Typography>
+
+      <form onSubmit={handleSubmit}>
+        <TextField label="Name" name="name" value={user.name} onChange={handleChange} fullWidth required sx={{ mb: 2 }} />
+        <TextField label="Email" name="email" type="email" value={user.email} onChange={handleChange} fullWidth required sx={{ mb: 2 }} />
+        <TextField label="Age" name="age" type="number" value={user.age} onChange={handleChange} fullWidth required sx={{ mb: 2 }} />
+        <TextField label="Password" name="password" type="password" value={user.password} onChange={handleChange} fullWidth required sx={{ mb: 2 }} />
+
+        <Stack direction="column" spacing={2} sx={{ mt: 2 }}>
+          <Button type="submit" variant="contained" color="primary" fullWidth>
+            Add User
+          </Button>
+        </Stack>
+      </form>
+    </Container>
   );
 };
 

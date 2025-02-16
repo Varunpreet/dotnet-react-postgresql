@@ -19,6 +19,6 @@ namespace UserManagementApi.Models
         public int Age { get; set; }
 
         [Required]
-        public string PasswordHash { get; set; } // ✅ Securely store hashed password
+        public string PasswordHash { get; set; }
     }
 }
