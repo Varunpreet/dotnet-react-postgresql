@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using UserManagementApi.Models;
+using System.ComponentModel.DataAnnotations;
 using UserManagementApi.Services;
+using UserManagementApi.Models;
 
-namespace UserManagementApi.Controllers
+namespace UserManagementApi
 {
     [Route("api/auth")]
     [ApiController]
@@ -15,24 +17,74 @@ namespace UserManagementApi.Controllers
             _authService = authService;
         }
 
+        // POST endpoint to register a new user; open to anonymous users.
+        [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] User user)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
         {
-            var success = await _authService.RegisterUser(user.Name, user.Email, user.Age, user.PasswordHash);
-            if (!success)
-                return BadRequest("User already exists.");
-            return Ok("User registered successfully.");
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = await _authService.RegisterUser(
+                registerRequest.Name,
+                registerRequest.Email,
+                registerRequest.Age,
+                registerRequest.PasswordHash
+            );
+
+            if (user == null)
+                return BadRequest(new { message = "User already exists." });
+
+            return Ok(new { message = "User registered successfully." });
         }
 
+        // POST endpoint for user login; open to anonymous users.
+        [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
-            var authenticatedUser = await _authService.AuthenticateUser(request.Email, request.PasswordHash);
-            if (authenticatedUser == null)
-                return Unauthorized("Invalid email or password.");
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-            var token = _authService.GenerateJwtToken(authenticatedUser);
+            var token = await _authService.AuthenticateUser(loginRequest.Email, loginRequest.PasswordHash);
+            if (token == null)
+                return Unauthorized(new { message = "Invalid email or password." });
+
             return Ok(new { token });
         }
+    }
+
+    // Request model for registration
+    public class RegisterRequest
+    {
+        [Required(ErrorMessage = "Name is required.")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email format.")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Age is required.")]
+        [Range(1, 120, ErrorMessage = "Age must be between 1 and 120.")]
+        public int Age { get; set; }
+
+        [Required(ErrorMessage = "Password is required.")]
+        [MinLength(6, ErrorMessage = "Password must be at least 6 characters long.")]
+        public string PasswordHash { get; set; }
+    }
+
+    // Request model for login
+    public class LoginRequest
+    {
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email format.")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Password is required.")]
+        public string PasswordHash { get; set; }
     }
 }

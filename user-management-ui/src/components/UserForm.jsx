@@ -17,7 +17,7 @@ const UserForm = () => {
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3, display: "flex", flexDirection: "column", gap: 2 }}>
+    <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3, display: "flex", flexDirection: "column", gap: 2, width:"100%", maxWidth:"400px" }}>
       <TextField fullWidth label="Name" name="name" value={formData.name} onChange={handleChange} required />
       <TextField fullWidth label="Email" name="email" value={formData.email} onChange={handleChange} required />
       <TextField fullWidth label="Age" name="age" value={formData.age} onChange={handleChange} required type="number" />

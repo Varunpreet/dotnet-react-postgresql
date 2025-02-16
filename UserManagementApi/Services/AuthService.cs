@@ -1,9 +1,13 @@
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using UserManagementApi.Data;
 using UserManagementApi.Models;
 
@@ -20,20 +24,16 @@ namespace UserManagementApi.Services
             _configuration = configuration;
         }
 
-        public async Task<User?> AuthenticateUser(string email, string password)
+        // Register a new user.
+        public async Task<User?> RegisterUser(string name, string email, int age, string password)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null || !VerifyPassword(password, user.PasswordHash))
+            if (_context.Users.Any(u => u.Email == email))
+            {
+                Console.WriteLine($"🔴 User with email {email} already exists.");
                 return null;
-            return user;
-        }
+            }
 
-        public async Task<bool> RegisterUser(string name, string email, int age, string password)
-        {
-            if (await _context.Users.AnyAsync(u => u.Email == email))
-                return false;
-
-            var user = new User
+            var newUser = new User
             {
                 Id = Guid.NewGuid(),
                 Name = name,
@@ -42,14 +42,53 @@ namespace UserManagementApi.Services
                 PasswordHash = HashPassword(password)
             };
 
-            _context.Users.Add(user);
+            _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
-            return true;
+            Console.WriteLine($"✅ Registered new user: {email}");
+
+            return newUser;
         }
 
+        // Authenticate User & Generate JWT Token.
+        public async Task<string?> AuthenticateUser(string email, string password)
+        {
+            var user = _context.Users.SingleOrDefault(u => u.Email == email);
+            if (user == null)
+            {
+                Console.WriteLine("🔴 Authentication failed: User not found.");
+                return null;
+            }
+
+            if (!VerifyPassword(password, user.PasswordHash))
+            {
+                Console.WriteLine("🔴 Authentication failed: Incorrect password.");
+                return null;
+            }
+
+            string token = GenerateJwtToken(user);
+            Console.WriteLine($"✅ Authentication successful. Token generated for {user.Email}.");
+            return token;
+        }
+
+        // Generate JWT Token.
         public string GenerateJwtToken(User user)
         {
-            var key = Encoding.UTF8.GetBytes(_configuration["JwtSettings:Secret"]);
+            var secret = _configuration["JwtSettings:Secret"] 
+                         ?? throw new ArgumentNullException("JwtSettings:Secret is missing");
+
+            var issuer = _configuration["JwtSettings:Issuer"] 
+                         ?? throw new ArgumentNullException("JwtSettings:Issuer is missing");
+
+            var audience = _configuration["JwtSettings:Audience"] 
+                           ?? throw new ArgumentNullException("JwtSettings:Audience is missing");
+
+            var expirationMinutesStr = _configuration["JwtSettings:ExpirationMinutes"];
+            if (string.IsNullOrEmpty(expirationMinutesStr) || !int.TryParse(expirationMinutesStr, out int expirationMinutes))
+            {
+                throw new ArgumentNullException("JwtSettings:ExpirationMinutes is missing or invalid");
+            }
+
+            var key = Encoding.UTF8.GetBytes(secret);
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -60,26 +99,37 @@ namespace UserManagementApi.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JwtSettings:ExpirationMinutes"])),
+                Expires = DateTime.UtcNow.AddMinutes(expirationMinutes),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                Issuer = _configuration["JwtSettings:Issuer"],
-                Audience = _configuration["JwtSettings:Audience"]
+                Issuer = issuer,
+                Audience = audience
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            string tokenString = tokenHandler.WriteToken(token);
+
+            Console.WriteLine($"✅ Generated Token: {tokenString}");
+
+            return tokenString;
         }
 
+        // Hash Password.
         private string HashPassword(string password)
         {
-            using var sha256 = SHA256.Create();
-            return Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(password)));
+            using (var sha256 = SHA256.Create())
+            {
+                var bytes = Encoding.UTF8.GetBytes(password);
+                var hash = sha256.ComputeHash(bytes);
+                return Convert.ToBase64String(hash);
+            }
         }
 
-        private bool VerifyPassword(string password, string hash)
+        // Verify Password.
+        private bool VerifyPassword(string enteredPassword, string storedHash)
         {
-            return HashPassword(password) == hash;
+            var enteredHash = HashPassword(enteredPassword);
+            return enteredHash == storedHash;
         }
     }
 }
