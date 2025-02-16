@@ -9,13 +9,11 @@ using UserManagementApi.Services;
 
 namespace UserManagementApi
 {
-    // Custom operation filter to add JWT security to POST and DELETE endpoints,
-    // but skip endpoints marked with [AllowAnonymous].
+
     public class AuthorizeCheckOperationFilter : IOperationFilter
     {
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
-            // If the endpoint is marked as AllowAnonymous, skip adding security.
             var hasAnonymous = context.MethodInfo.GetCustomAttributes(true)
                 .OfType<Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute>().Any() ||
                 context.MethodInfo.DeclaringType.GetCustomAttributes(true)
@@ -56,13 +54,11 @@ namespace UserManagementApi
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Configure PostgreSQL Database Connection
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddScoped<AuthService>();
 
-            // Configure JWT Authentication
             var jwtSettings = builder.Configuration.GetSection("JwtSettings");
             var secretKey = jwtSettings["Secret"] ?? throw new ArgumentNullException("JwtSettings:Secret is missing");
 
@@ -80,7 +76,7 @@ namespace UserManagementApi
                         ValidIssuer = jwtSettings["Issuer"],
                         ValidAudience = jwtSettings["Audience"],
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-                        ClockSkew = System.TimeSpan.Zero  // eliminate delay tolerance for token expiration (for testing)
+                        ClockSkew = System.TimeSpan.Zero 
                     };
                     options.Events = new JwtBearerEvents
                     {
@@ -99,7 +95,6 @@ namespace UserManagementApi
 
             builder.Services.AddAuthorization();
 
-            // Configure CORS for React Frontend
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend",
@@ -132,13 +127,11 @@ namespace UserManagementApi
                 };
 
                 c.AddSecurityDefinition("Bearer", securityScheme);
-                // Register the custom operation filter defined above.
                 c.OperationFilter<AuthorizeCheckOperationFilter>();
             });
 
             var app = builder.Build();
 
-            // Middleware Logging: Log all incoming headers for debugging.
             app.Use(async (context, next) =>
             {
                 Console.WriteLine("🔍 Incoming Request Headers:");
@@ -150,7 +143,7 @@ namespace UserManagementApi
             });
 
             app.UseCors("AllowFrontend");
-            app.UseAuthentication();  // Must be before Authorization.
+            app.UseAuthentication();
             app.UseAuthorization();
 
             if (app.Environment.IsDevelopment())

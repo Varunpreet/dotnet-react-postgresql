@@ -1,31 +1,41 @@
+import React from "react";
 import { useUserContext } from "../context/UserContext";
-import { List, ListItem, ListItemText, Typography, CircularProgress, IconButton, Paper } from "@mui/material";
+import { List, ListItem, ListItemText, IconButton, CircularProgress, Typography, Paper } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 const UserList = () => {
-  const { users, loading, error, deleteUser } = useUserContext();
+  const { users, loading, deleteUser } = useUserContext();
 
-  if (loading) return <CircularProgress sx={{ display: "block", mx: "auto" }} />;
-  if (error) return <Typography color="error" align="center">{error}</Typography>;
+  if (loading) return <CircularProgress sx={{ display: "block", margin: "auto" }} />;
 
   return (
-    <Paper elevation={2} sx={{ p: 2, mt: 3, textAlign: "center" }}>
-      <Typography variant="h6" align="center" gutterBottom>
+    <Paper elevation={2} sx={{ padding: 2 }}>
+      <Typography variant="h5" align="center" sx={{ mb: 2, fontWeight: "bold" }}>
         User List
       </Typography>
       <List>
-        {users.length > 0 ? (
+        {users.length === 0 ? (
+          <Typography align="center" color="textSecondary">
+            No users found.
+          </Typography>
+        ) : (
           users.map((user) => (
             <ListItem key={user.id} secondaryAction={
-              <IconButton edge="end" aria-label="delete" onClick={() => deleteUser(user.id)}>
+              <IconButton
+                edge="end"
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to delete this user?")) {
+                    deleteUser(user.id);
+                  }
+                }}
+                color="error"
+              >
                 <DeleteIcon />
               </IconButton>
             }>
-              <ListItemText primary={user.name} secondary={user.email} />
+              <ListItemText primary={`${user.name} (${user.email})`} secondary={`Age: ${user.age}`} />
             </ListItem>
           ))
-        ) : (
-          <Typography align="center">No users found. Add a user above.</Typography>
         )}
       </List>
     </Paper>

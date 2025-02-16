@@ -1,52 +1,77 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useUserContext } from "../context/UserContext";
-import { TextField, Button, Paper, Typography, Box, Container } from "@mui/material";
-import axios from "axios";
+import { TextField, Button, Container, Typography, Alert } from "@mui/material";
 
 const LoginForm = () => {
-  const { login } = useUserContext();
-  const [formData, setFormData] = useState({ email: "", passwordHash: "" });
-  const [error, setError] = useState("");
+  const { setToken } = useUserContext();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
+    setErrorMessage("");
 
     try {
-      console.log("🔹 Sending login request:", formData); // ✅ Debugging Log
-      const response = await axios.post("http://localhost:5155/api/auth/login", formData, {
+      const response = await fetch("http://localhost:5155/api/auth/login", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        withCredentials: true // ✅ Ensures cookies & authentication headers are sent
+        body: JSON.stringify({ email, passwordHash: password }),
       });
 
-      console.log("✅ Login successful, Token Received:", response.data.token); // ✅ Debugging Log
-      login(response.data.token);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Invalid email or password.");
+      }
+
+      const data = await response.json();
+      localStorage.setItem("token", data.token);
+      setToken(data.token);
     } catch (error) {
-      console.error("❌ Login error:", error.response ? error.response.data : error.message);
-      setError("Invalid email or password.");
+      setErrorMessage(error.message);
     }
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "#f4f6f8" }}>
-      <Container maxWidth="xs">
-        <Paper elevation={6} sx={{ p: 4, borderRadius: 3, textAlign: "center" }}>
-          <Typography variant="h4" gutterBottom color="primary">
-            Login
-          </Typography>
-          <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <TextField fullWidth label="Email" name="email" value={formData.email} onChange={handleChange} required />
-            <TextField fullWidth label="Password" name="passwordHash" value={formData.passwordHash} onChange={handleChange} required type="password" />
-            {error && <Typography color="error">{error}</Typography>}
-            <Button type="submit" variant="contained" color="primary" fullWidth>
-              Login
-            </Button>
-          </Box>
-        </Paper>
-      </Container>
-    </Box>
+    <Container maxWidth="xs" sx={{ mt: 5, p: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Typography
+        variant="h5"
+        align="center"
+        sx={{ fontWeight: "bold", mb: 2, color: "black" }}
+      >
+        User Login
+      </Typography>
+
+      {errorMessage && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorMessage}
+        </Alert>
+      )}
+
+      <form onSubmit={handleLogin}>
+        <TextField
+          label="Email"
+          type="email"
+          fullWidth
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          sx={{ mb: 2 }}
+        />
+        <TextField
+          label="Password"
+          type="password"
+          fullWidth
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          sx={{ mb: 2 }}
+        />
+        <Button type="submit" variant="contained" color="primary" fullWidth>
+          Login
+        </Button>
+      </form>
+    </Container>
   );
 };
 

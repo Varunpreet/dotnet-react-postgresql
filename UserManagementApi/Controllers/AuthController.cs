@@ -17,7 +17,6 @@ namespace UserManagementApi
             _authService = authService;
         }
 
-        // POST endpoint to register a new user; open to anonymous users.
         [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
@@ -40,7 +39,6 @@ namespace UserManagementApi
             return Ok(new { message = "User registered successfully." });
         }
 
-        // POST endpoint for user login; open to anonymous users.
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
@@ -58,7 +56,6 @@ namespace UserManagementApi
         }
     }
 
-    // Request model for registration
     public class RegisterRequest
     {
         [Required(ErrorMessage = "Name is required.")]
@@ -77,7 +74,6 @@ namespace UserManagementApi
         public string PasswordHash { get; set; }
     }
 
-    // Request model for login
     public class LoginRequest
     {
         [Required(ErrorMessage = "Email is required.")]
