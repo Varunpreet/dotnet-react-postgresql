@@ -7,6 +7,7 @@ export const UserProvider = ({ children }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (token) {
@@ -55,6 +56,7 @@ export const UserProvider = ({ children }) => {
       }
       const addedUser = await response.json();
       setUsers([...users, addedUser]);
+      setSuccessMessage("User added successfully.");
     } catch (error) {
       console.error("Error adding user:", error);
       setErrorMessage(error.message);
@@ -78,6 +80,7 @@ export const UserProvider = ({ children }) => {
         throw new Error("Failed to delete user.");
       }
       setUsers(users.filter((user) => user.id !== userId));
+      setSuccessMessage("User deleted successfully.");
     } catch (error) {
       console.error("Error deleting user:", error);
       setErrorMessage(error.message);
@@ -101,6 +104,8 @@ export const UserProvider = ({ children }) => {
         logoutUser,
         errorMessage,
         setErrorMessage,
+        successMessage,
+        setSuccessMessage,
       }}
     >
       {children}

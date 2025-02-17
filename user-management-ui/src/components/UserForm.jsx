@@ -43,7 +43,7 @@ const UserForm = () => {
         <TextField label="Password" name="password" type="password" value={user.password} onChange={handleChange} fullWidth required sx={{ mb: 2 }} />
 
         <Stack direction="column" spacing={2} sx={{ mt: 2 }}>
-          <Button type="submit" variant="contained" color="primary" fullWidth>
+          <Button type="submit" variant="contained" color="primary" sx={{ width: "70%", alignSelf: "center" }}>
             Add User
           </Button>
         </Stack>

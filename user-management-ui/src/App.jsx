@@ -4,7 +4,7 @@ import { useUserContext } from "./context/UserContext";
 import LoginForm from "./components/LoginForm";
 import UserList from "./components/UserList";
 import UserForm from "./components/UserForm";
-import { Container, Typography, Box, Paper } from "@mui/material";
+import { Container, Typography, Box, Paper, Button, Snackbar, Alert } from "@mui/material";
 import "./App.css";
 
 const Dashboard = () => {
@@ -59,9 +59,14 @@ const Dashboard = () => {
           }}
         >
           <UserForm />
-          <button className="logout-btn" onClick={handleLogout}>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleLogout}
+            sx={{ mt: 2, width: "70%", alignSelf: "center" }}
+          >
             Logout
-          </button>
+          </Button>
         </Paper>
 
         <Paper
@@ -81,6 +86,18 @@ const Dashboard = () => {
 };
 
 const App = () => {
+  const { errorMessage, setErrorMessage, successMessage, setSuccessMessage } = useUserContext();
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") return;
+    setErrorMessage("");
+  };
+
+  const handleCloseSuccessSnackbar = (event, reason) => {
+    if (reason === "clickaway") return;
+    setSuccessMessage("");
+  };
+
   return (
     <BrowserRouter>
       <Routes>
@@ -89,6 +106,26 @@ const App = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+      <Snackbar
+        open={!!errorMessage}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: "100%" }}>
+          {errorMessage}
+        </Alert>
+      </Snackbar>
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={handleCloseSuccessSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleCloseSuccessSnackbar} severity="success" sx={{ width: "100%" }}>
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </BrowserRouter>
   );
 };
