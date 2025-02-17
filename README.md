@@ -68,3 +68,62 @@ Ensure you have the following installed before proceeding:
 - [PostgreSQL](https://www.postgresql.org/download/)
 
 ---
+
+## Installation & Running the Project
+
+### Backend Setup
+```sh
+# Navigate to the Backend Directory
+cd UserManagementApi
+
+# Restore NuGet Packages
+dotnet restore
+
+# Ensure that appsettings.json and appsettings.Development.json have the correct database connection strings and JWT settings.
+
+# Run the Backend API
+dotnet run
+```
+The API will launch, and **Swagger** will be available in development mode.
+
+### Frontend Setup
+```sh
+# Navigate to the Frontend Directory
+cd user-management-ui
+
+# Install npm Dependencies
+npm install
+
+# Run the Frontend Application
+npm run dev
+```
+The frontend will be available at **[http://localhost:5173](http://localhost:5173)**.
+
+### Running Tests
+
+#### Backend Tests
+```sh
+# Navigate to the Backend Test Directory
+cd UserManagementApi.Tests
+
+# Execute the Tests
+dotnet test
+```
+
+#### Frontend Tests
+```sh
+# Ensure Vitest is Installed (already a dev dependency)
+
+# Run the Tests
+npm run test
+```
+
+### Database Details
+```
+Port: 5432
+Database Name: user_management
+Username: postgres
+Password: varun
+```
+
+
