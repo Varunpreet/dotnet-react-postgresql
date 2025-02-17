@@ -108,10 +108,11 @@ Following these steps in Swagger UI allows you to fully test your backend user m
 
 Testing Frontend with the User Interface:
 •	Start the Frontend Application:
-Open a terminal and navigate to the frontend project directory (e.g., `user-management-ui`). Install dependencies if not already installed: npm install
+Open a terminal and navigate to the frontend project directory (e.g., `user-management-ui`). 
+    -Install dependencies if not already installed: npm install
    - Start the development server: npm run dev
    - The Vite development server will start and typically serve the app at [http://localhost:5173](http://localhost:5173).
-•	Open the Application in Your Browser:
+Open the Application in Your Browser:
    - Open your web browser and navigate to [http://localhost:5173](http://localhost:5173).
    - The application should display the login page as the default route.
 •	Testing the Login Process:
