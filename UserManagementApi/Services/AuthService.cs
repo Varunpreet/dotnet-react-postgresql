@@ -24,12 +24,11 @@ namespace UserManagementApi.Services
             _configuration = configuration;
         }
 
-        // Register a new user.
         public async Task<User?> RegisterUser(string name, string email, int age, string password)
         {
             if (_context.Users.Any(u => u.Email == email))
             {
-                Console.WriteLine($"🔴 User with email {email} already exists.");
+                Console.WriteLine($"User with email {email} already exists.");
                 return null;
             }
 
@@ -39,38 +38,36 @@ namespace UserManagementApi.Services
                 Name = name,
                 Email = email,
                 Age = age,
-                PasswordHash = HashPassword(password)  // Hashes the password
+                PasswordHash = HashPassword(password) 
             };
 
             _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
-            Console.WriteLine($"✅ Registered new user: {email}");
+            Console.WriteLine($"Registered new user: {email}");
 
             return newUser;
         }
 
-        // Authenticate User & Generate JWT Token.
         public async Task<string?> AuthenticateUser(string email, string password)
         {
             var user = _context.Users.SingleOrDefault(u => u.Email == email);
             if (user == null)
             {
-                Console.WriteLine("🔴 Authentication failed: User not found.");
+                Console.WriteLine("Authentication failed: User not found.");
                 return null;
             }
 
             if (!VerifyPassword(password, user.PasswordHash))
             {
-                Console.WriteLine("🔴 Authentication failed: Incorrect password.");
+                Console.WriteLine("Authentication failed: Incorrect password.");
                 return null;
             }
 
             string token = GenerateJwtToken(user);
-            Console.WriteLine($"✅ Authentication successful. Token generated for {user.Email}.");
+            Console.WriteLine($"Authentication successful. Token generated for {user.Email}.");
             return token;
         }
 
-        // Generate JWT Token.
         public string GenerateJwtToken(User user)
         {
             var secret = _configuration["JwtSettings:Secret"] 
@@ -109,12 +106,11 @@ namespace UserManagementApi.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             string tokenString = tokenHandler.WriteToken(token);
 
-            Console.WriteLine($"✅ Generated Token: {tokenString}");
+            Console.WriteLine($"Generated Token: {tokenString}");
 
             return tokenString;
         }
 
-        // Hash Password. (Made public so it can be used in UsersController)
         public string HashPassword(string password)
         {
             using (var sha256 = SHA256.Create())
@@ -125,7 +121,6 @@ namespace UserManagementApi.Services
             }
         }
 
-        // Verify Password.
         private bool VerifyPassword(string enteredPassword, string storedHash)
         {
             var enteredHash = HashPassword(enteredPassword);

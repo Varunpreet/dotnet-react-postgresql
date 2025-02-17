@@ -3,9 +3,10 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  // Initialize token from local storage (if it exists)
   const [token, setToken] = useState(localStorage.getItem("token") || null);
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (token) {
@@ -14,12 +15,16 @@ export const UserProvider = ({ children }) => {
   }, [token]);
 
   const fetchUsers = async () => {
+    setLoading(true);
     try {
       const response = await fetch("http://localhost:5155/api/users");
       if (!response.ok) throw new Error("Failed to fetch users.");
       setUsers(await response.json());
     } catch (error) {
       console.error("Error fetching users:", error);
+      setErrorMessage(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -40,10 +45,19 @@ export const UserProvider = ({ children }) => {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to add user.");
-      setUsers([...users, await response.json()]);
+      if (!response.ok) {
+        if (response.status === 401) {
+          setErrorMessage("Session expired. Please log in again.");
+          logoutUser();
+          return;
+        }
+        throw new Error("Failed to add user.");
+      }
+      const addedUser = await response.json();
+      setUsers([...users, addedUser]);
     } catch (error) {
       console.error("Error adding user:", error);
+      setErrorMessage(error.message);
     }
   };
 
@@ -55,10 +69,18 @@ export const UserProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error("Failed to delete user.");
+      if (!response.ok) {
+        if (response.status === 401) {
+          setErrorMessage("Session expired. Please log in again.");
+          logoutUser();
+          return;
+        }
+        throw new Error("Failed to delete user.");
+      }
       setUsers(users.filter((user) => user.id !== userId));
     } catch (error) {
       console.error("Error deleting user:", error);
+      setErrorMessage(error.message);
     }
   };
 
@@ -68,7 +90,19 @@ export const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ users, addUser, deleteUser, token, setToken, logoutUser }}>
+    <UserContext.Provider
+      value={{
+        token,
+        setToken,
+        users,
+        loading,
+        addUser,
+        deleteUser,
+        logoutUser,
+        errorMessage,
+        setErrorMessage,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );

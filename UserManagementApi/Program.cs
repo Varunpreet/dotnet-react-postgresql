@@ -114,7 +114,7 @@ namespace UserManagementApi
                 var securityScheme = new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
-                    Description = "Enter 'Bearer {token}'",
+                    Description = "Enter token value",
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.Http,
                     Scheme = "Bearer",
@@ -134,7 +134,7 @@ namespace UserManagementApi
 
             app.Use(async (context, next) =>
             {
-                Console.WriteLine("🔍 Incoming Request Headers:");
+                Console.WriteLine("Incoming Request Headers:");
                 foreach (var header in context.Request.Headers)
                 {
                     Console.WriteLine($"{header.Key}: {header.Value}");

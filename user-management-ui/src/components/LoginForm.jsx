@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { useUserContext } from "../context/UserContext";
 import { TextField, Button, Container, Typography, Alert } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 const LoginForm = () => {
   const { setToken } = useUserContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -27,6 +29,7 @@ const LoginForm = () => {
       const data = await response.json();
       localStorage.setItem("token", data.token);
       setToken(data.token);
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       setErrorMessage(error.message);
     }
