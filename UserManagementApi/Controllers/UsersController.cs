@@ -38,12 +38,12 @@ namespace UserManagementApi.Controllers
 
             if (string.IsNullOrEmpty(token))
             {
-                Console.WriteLine("🔴 No Authorization token received.");
-                return Unauthorized("🔴 No token received in request.");
+                Console.WriteLine("No Authorization token received.");
+                return Unauthorized("No token received in request.");
             }
 
             if (user.Age < 1 || user.Age > 120)
-                return BadRequest("🔴 Age must be between 1 and 120.");
+                return BadRequest("Age must be between 1 and 120.");
 
             user.PasswordHash = _authService.HashPassword(user.PasswordHash);
 
@@ -62,15 +62,15 @@ namespace UserManagementApi.Controllers
 
             if (string.IsNullOrEmpty(token))
             {
-                Console.WriteLine("🔴 No Authorization token received.");
-                return Unauthorized("🔴 No token received in request.");
+                Console.WriteLine("No Authorization token received.");
+                return Unauthorized("No token received in request.");
             }
 
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                Console.WriteLine($"🔴 User with ID {id} not found.");
-                return NotFound("🔴 User not found.");
+                Console.WriteLine($"User with ID {id} not found.");
+                return NotFound("User not found.");
             }
 
             _context.Users.Remove(user);
