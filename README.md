@@ -108,28 +108,28 @@ Following these steps in Swagger UI allows you to fully test your backend user m
 
 Testing Frontend with the User Interface:
 •	Start the Frontend Application:
-   - Open a terminal and navigate to the frontend project directory: user-management-ui`
-   - Install dependencies if not already installed: npm install
-   - Start the development server: npm run dev
-   - The Vite development server will start and typically serve the app at [http://localhost:5173](http://localhost:5173).
+o	Open a terminal and navigate to the frontend project directory (e.g., `user-management-ui`).
+o	Install dependencies if not already installed: npm install
+o	Start the development server: npm run dev
+o	The Vite development server will start and typically serve the app at [http://localhost:5173](http://localhost:5173).
 •	Open the Application in Your Browser:
-   - Open your web browser and navigate to [http://localhost:5173](http://localhost:5173).
-   - The application should display the login page as the default route.
+o	Open your web browser and navigate to [http://localhost:5173](http://localhost:5173). The application should display the login page as the default route.
 •	Testing the Login Process:
-   - On the login page, enter your credentials (use valid credentials corresponding to an existing user registered via the backend or via the registration endpoint).
-   - Click the Login button.
-   - Upon successful login, the application stores the token in local storage and automatically navigates to the dashboard.
+o	On the login page, enter your credentials (use valid credentials corresponding to an existing user registered via the backend or via the registration endpoint).
+o	Click the Login button.
+o	Upon successful login, the application stores the token in local storage and automatically navigates to the dashboard.
 •	Dashboard Functionality:
-   - On the dashboard, you will see a loading indicator while the user list is being fetched.
-   - Once loaded, the dashboard displays the list of users along with options to add or delete users.
-   - Test the Add User functionality:
-     - Fill in the form with valid user details.
-     - Click the Add User button.
-     - The newly added user should appear in the list.
-   - Test the Delete User functionality:
-     - Click the delete icon next to a user.
-     - Confirm the deletion when prompted.
-     - The user should be removed from the list.
+o	On the dashboard, you will see a loading indicator while the user list is being fetched.
+o	Once loaded, the dashboard displays the list of users along with options to add or delete users.
+o	Test the Add User functionality:
+	Fill in the form with valid user details.
+	Click the Add User button.
+	The newly added user should appear in the list.
+o	Test the Delete User functionality:
+	Click the delete icon next to a user.
+	Confirm the deletion when prompted.
+	The user should be removed from the list.
+
 
 Backend Tests:
 1.	Navigate to the Backend Test Directory: UserManagementApi.Tests
