@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("UserManagementApi.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+299fd7dcfab68ca925630f21c31dc3eded0e817c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ac4dc8e24db09ff612a4b181089eb2f60028a391")]
 [assembly: System.Reflection.AssemblyProductAttribute("UserManagementApi.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("UserManagementApi.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

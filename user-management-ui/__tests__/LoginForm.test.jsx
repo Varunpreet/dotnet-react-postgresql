@@ -63,10 +63,15 @@ describe("LoginForm Component", () => {
   });
 
   test("successful login stores token and navigates to dashboard", async () => {
-    global.fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ token: "dummy-token" }),
-    });
+    global.fetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ token: "dummy-token" }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ([]),
+      });
 
     render(
       <UserProvider>
